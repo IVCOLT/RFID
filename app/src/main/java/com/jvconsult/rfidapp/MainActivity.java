@@ -8,6 +8,8 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+import android.content.Intent;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -28,9 +30,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+
 public class MainActivity extends AppCompatActivity implements IAsynchronousMessage {
 
-    private static final String TAG = "Demo";
+    private static final int REQUEST_READ_EXTERNAL_STORAGE = 2;
+    private static final String TAG = "MainActivity";
 
     private ListView list;
     private ArrayAdapter<String> adapter;
@@ -52,16 +56,21 @@ public class MainActivity extends AppCompatActivity implements IAsynchronousMess
         UHFReader._Config.SetEPCBaseBandParam(255, 0, 1, 0);
         UHFReader._Config.SetANTPowerParam(1, 20);
     }
+
     private void checkPermission() {
-//
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.READ_PHONE_STATE)
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new
                     String[]{android.Manifest.permission.READ_PHONE_STATE}, REQUEST_READ_PHONE_STATE);
+        } else if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new
+                    String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_READ_EXTERNAL_STORAGE);
         } else {
             initView();
         }
     }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -147,7 +156,12 @@ public class MainActivity extends AppCompatActivity implements IAsynchronousMess
         }
 
         CsvExporter.exportToCsv(arrayList, "tags_lidas.csv");
+
+        startActivity(new Intent(this, CsvTableActivity.class));
+        Toast.makeText(this, "Exportação concluída!", Toast.LENGTH_SHORT).show();
+
     }
+
 
     @SuppressWarnings({ "rawtypes", "unused" })
     protected List<Map<String, Object>> GetData() {
@@ -176,11 +190,21 @@ public class MainActivity extends AppCompatActivity implements IAsynchronousMess
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
-        if (requestCode == REQUEST_READ_PHONE_STATE) {
-            initView();
-        }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == REQUEST_READ_PHONE_STATE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                checkPermission(); // para verificar a próxima permissão
+            }
+        } else if (requestCode == REQUEST_READ_EXTERNAL_STORAGE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                initView();
+            } else {
+                Toast.makeText(this, "Permissão para ler armazenamento necessária.", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
+
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
