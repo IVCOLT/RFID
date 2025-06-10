@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
@@ -21,9 +22,11 @@ import com.port.Adapt;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.io.FileInputStream;
 
 public class MainActivity extends AppCompatActivity implements IAsynchronousMessage {
 
@@ -39,13 +42,21 @@ public class MainActivity extends AppCompatActivity implements IAsynchronousMess
     private boolean isOpened = false;
     private boolean isReading = false;
 
-    // Dados da planilha importada (por nroplaqueta)
+    // Dados da planilha importada (filtrados por nroplaqueta)
     private Set<String> planilhaTags = new HashSet<>();
+    private Map<String, InventarioItem> mapEpcToInventarioItem = new HashMap<>(); // Novo!
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        String lojaSelecionada = getIntent().getStringExtra("LOJA_SELECIONADA");
+        ArrayList<String> plaquetasDaLoja = getIntent().getStringArrayListExtra("PLAQUETAS_LOJA");
+
+        if (lojaSelecionada != null) {
+            Toast.makeText(this, "Inventário da loja " + lojaSelecionada, Toast.LENGTH_SHORT).show();
+        }
 
         list = findViewById(R.id.ltEPCs);
 
@@ -57,6 +68,32 @@ public class MainActivity extends AppCompatActivity implements IAsynchronousMess
                 new int[]{R.id.tvEpc, R.id.tvCount}
         );
         list.setAdapter(simpleAdapter);
+
+        // Guarda só os nroplaqueta da loja filtrada
+        planilhaTags.clear();
+        if (plaquetasDaLoja != null) {
+            planilhaTags.addAll(plaquetasDaLoja);
+        }
+
+        // Popula map de EPC para InventarioItem
+        List<InventarioItem> itensDaLoja = InventarioData.getInstance().getInventario();
+        mapEpcToInventarioItem.clear();
+        for (InventarioItem item : itensDaLoja) {
+            if (item.nroplaqueta != null && !item.nroplaqueta.isEmpty()) {
+                mapEpcToInventarioItem.put(item.nroplaqueta, item);
+            }
+        }
+
+        // Torna a lista clicável
+        list.setOnItemClickListener((parent, view, position, id) -> {
+            Map<String, Object> map = listData.get(position);
+            InventarioItem item = (InventarioItem) map.get("InventarioItem");
+            if (item == null) {
+                Toast.makeText(this, "Item não encontrado na planilha.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            showEditDialog(item, position);
+        });
 
         checkPermissions();
     }
@@ -76,7 +113,6 @@ public class MainActivity extends AppCompatActivity implements IAsynchronousMess
             ActivityCompat.requestPermissions(this, permissions.toArray(new String[0]), REQUEST_PERMISSIONS);
         } else {
             initUHF();
-            importarPlanilha();
         }
     }
 
@@ -88,36 +124,6 @@ public class MainActivity extends AppCompatActivity implements IAsynchronousMess
         }
         UHFReader._Config.SetEPCBaseBandParam(255, 0, 1, 0);
         UHFReader._Config.SetANTPowerParam(1, 20);
-    }
-
-    private void importarPlanilha() {
-        File file = new File("/storage/emulated/0/pda/BASE GERAL PARA INVENTARIO COM RFID - 08ABRIL2025 - 08ABRIEL202591).csv");
-        if (!file.exists()) {
-            Toast.makeText(this, "Planilha não encontrada.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        try {
-            List<String[]> linhas = parseCSVManual(file);
-            boolean primeira = true;
-
-            for (String[] campos : linhas) {
-                if (primeira) { // pular cabeçalho
-                    primeira = false;
-                    continue;
-                }
-                if (campos.length >= 10) {
-                    String nroPlaqueta = campos[9].trim();
-                    if (!nroPlaqueta.isEmpty()) {
-                        planilhaTags.add(nroPlaqueta);
-                    }
-                }
-            }
-            Toast.makeText(this, "Planilha importada: " + planilhaTags.size() + " itens.", Toast.LENGTH_SHORT).show();
-        } catch (Exception e) {
-            Log.e(TAG, "Erro ao ler CSV manual: " + e.getMessage());
-            Toast.makeText(this, "Erro ao ler a planilha.", Toast.LENGTH_SHORT).show();
-        }
     }
 
     public void onRead(View v) {
@@ -150,6 +156,10 @@ public class MainActivity extends AppCompatActivity implements IAsynchronousMess
                     } else {
                         map.put("Status", "❌ Não encontrado");
                     }
+
+                    // Pega o objeto InventarioItem correspondente
+                    InventarioItem inventarioItem = mapEpcToInventarioItem.get(epc);
+                    map.put("InventarioItem", inventarioItem);
 
                     listData.add(map);
 
@@ -219,7 +229,7 @@ public class MainActivity extends AppCompatActivity implements IAsynchronousMess
     // Parser manual de CSV para considerar aspas e vírgulas internas
     public static List<String[]> parseCSVManual(File file) throws IOException {
         List<String[]> lines = new ArrayList<>();
-        BufferedReader br = new BufferedReader(new FileReader(file));
+        BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
         String line;
         while ((line = br.readLine()) != null) {
             lines.add(parseLine(line));
@@ -247,5 +257,28 @@ public class MainActivity extends AppCompatActivity implements IAsynchronousMess
         }
         result.add(sb.toString().trim());
         return result.toArray(new String[0]);
+    }
+
+    // ------------ NOVO: Dialog de edição --------------
+    private void showEditDialog(InventarioItem item, int position) {
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_edit_item, null);
+
+        EditText editDesc = dialogView.findViewById(R.id.editDescresumida);
+        EditText editLoc = dialogView.findViewById(R.id.editCodlocalizacao);
+
+        editDesc.setText(item.descresumida != null ? item.descresumida : "");
+        editLoc.setText(item.codlocalizacao != null ? item.codlocalizacao : "");
+
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Editar Item")
+                .setView(dialogView)
+                .setPositiveButton("Salvar", (dialog, which) -> {
+                    item.descresumida = editDesc.getText().toString();
+                    item.codlocalizacao = editLoc.getText().toString();
+                    simpleAdapter.notifyDataSetChanged();
+                    Toast.makeText(this, "Item atualizado.", Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("Cancelar", null)
+                .show();
     }
 }

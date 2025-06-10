@@ -33,4 +33,5 @@ public class InventarioItem {
         item.modelobem = parts[11];
         return item;
     }
+
 }
