@@ -149,6 +149,33 @@ public class MainActivity extends AppCompatActivity implements IAsynchronousMess
         }
     }
 
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        Log.d(TAG, "Key down code: " + keyCode);
+
+        if (keyCode == 139) { // gatilho detectado
+            if (!isReading) {
+                onRead(null);  // inicia a leitura
+            }
+            return true; // consome o evento
+        }
+
+        return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        if (keyCode == 139) { // gatilho solto
+            if (isReading) {
+                onStop(null);  // para a leitura
+            }
+            return true;
+        }
+        return super.onKeyUp(keyCode, event);
+    }
+
+
+
     public void exportTagsToCsv(View v) {
         if (arrayList.isEmpty()) {
             Log.d("CSV Export", "Nenhuma tag para exportar.");
@@ -203,11 +230,5 @@ public class MainActivity extends AppCompatActivity implements IAsynchronousMess
                 Toast.makeText(this, "Permissão para ler armazenamento necessária.", Toast.LENGTH_SHORT).show();
             }
         }
-    }
-
-
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        return super.onKeyDown(keyCode, event);
     }
 }

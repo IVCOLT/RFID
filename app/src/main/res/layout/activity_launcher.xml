@@ -4,21 +4,48 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
-    android:padding="16dp">
+    android:padding="24dp"
+    android:background="#F9F9F9">
 
+    <!-- Título opcional -->
+    <TextView
+        android:id="@+id/tvMainTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Menu Principal"
+        android:textSize="24sp"
+        android:textColor="#333333"
+        android:textStyle="bold"
+        android:fontFamily="sans-serif-medium"
+        android:layout_marginBottom="32dp" />
+
+    <!-- Botão de Leitura RFID -->
     <Button
         android:id="@+id/btnLeituraRFID"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Leitura RFID"
-        android:onClick="goToLeituraRFID" />
+        android:textSize="18sp"
+        android:backgroundTint="#4CAF50"
+        android:textColor="#FFFFFF"
+        android:fontFamily="sans-serif-medium"
+        android:paddingVertical="12dp"
+        android:onClick="goToLeituraRFID"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/rounded_button_green" />
 
+    <!-- Botão de Tabela CSV -->
     <Button
         android:id="@+id/btnCsvTable"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Tabela CSV"
-        android:layout_marginTop="20dp"
-        android:onClick="goToCsvTable" />
+        android:textSize="18sp"
+        android:backgroundTint="#2196F3"
+        android:textColor="#FFFFFF"
+        android:fontFamily="sans-serif-medium"
+        android:paddingVertical="12dp"
+        android:onClick="goToCsvTable"
+        android:background="@drawable/rounded_button_blue" />
 
 </LinearLayout>
