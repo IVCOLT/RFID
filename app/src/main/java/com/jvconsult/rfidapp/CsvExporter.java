@@ -20,15 +20,22 @@ public class CsvExporter {
 
             File file = new File(exportDir, fileName);
 
-            BufferedWriter bw = new BufferedWriter(new FileWriter(file));
+            // Verifica se arquivo existe e se está vazio para decidir se escreve cabeçalho
+            boolean writeHeader = !file.exists() || file.length() == 0;
 
-            // Cabeçalho
-            bw.write("RFID_TAG");
-            bw.newLine();
+            BufferedWriter bw = new BufferedWriter(new FileWriter(file, true));  // modo append
 
-            // Dados
-            for (String data : dataList) {
-                bw.write(data);
+            if (writeHeader) {
+                // Assume que a primeira linha da lista é o cabeçalho, escreve só uma vez
+                if (!dataList.isEmpty()) {
+                    bw.write(dataList.get(0));
+                    bw.newLine();
+                }
+            }
+
+            // Escreve as linhas de dados pulando o cabeçalho (índice 0)
+            for (int i = 1; i < dataList.size(); i++) {
+                bw.write(dataList.get(i));
                 bw.newLine();
             }
 
