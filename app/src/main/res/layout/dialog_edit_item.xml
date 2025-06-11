@@ -1,6 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:padding="16dp"
+    android:minHeight="150dp"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
@@ -8,12 +10,23 @@
         android:id="@+id/editDescresumida"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Descrição resumida" />
+        android:hint="Nome do Item"
+        android:inputType="textPersonName" />
+
+    <EditText
+        android:id="@+id/editLoja"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Loja"
+        android:layout_marginTop="12dp"
+        android:inputType="textPersonName" />
 
     <EditText
         android:id="@+id/editCodlocalizacao"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Código de Localização"
-        android:layout_marginTop="12dp"/>
+        android:hint="Setor"
+        android:layout_marginTop="12dp"
+        android:inputType="textPersonName" />
+
 </LinearLayout>

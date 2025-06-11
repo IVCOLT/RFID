@@ -7,7 +7,6 @@
     android:padding="24dp"
     android:background="#F9F9F9">
 
-    <!-- Título opcional -->
     <TextView
         android:id="@+id/tvMainTitle"
         android:layout_width="wrap_content"
@@ -32,7 +31,6 @@
         android:onClick="onImportarPlanilha"
         android:layout_marginBottom="16dp" />
 
-    <!-- Botão de Leitura RFID -->
     <Button
         android:id="@+id/btnInventario"
         android:layout_width="match_parent"
@@ -44,10 +42,8 @@
         android:fontFamily="sans-serif-medium"
         android:paddingVertical="12dp"
         android:onClick="goToInventario"
-        android:background="@drawable/rounded_button_green"
         android:layout_marginBottom="16dp" />
 
-    <!-- Botão de Tabela CSV -->
     <Button
         android:id="@+id/btnCsvTable"
         android:layout_width="match_parent"
@@ -58,7 +54,6 @@
         android:textColor="#FFFFFF"
         android:fontFamily="sans-serif-medium"
         android:paddingVertical="12dp"
-        android:onClick="goToCsvTable"
-        android:background="@drawable/rounded_button_blue" />
+        android:onClick="goToCsvTable" />
 
 </LinearLayout>

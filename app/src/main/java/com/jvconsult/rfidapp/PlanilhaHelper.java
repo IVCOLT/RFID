@@ -1,21 +1,19 @@
 package com.jvconsult.rfidapp;
 
 import android.content.Context;
+import android.os.Environment;
 import android.util.Log;
 import android.widget.Toast;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import java.util.ArrayList;
-
-
+import java.util.List;
 
 public class PlanilhaHelper {
 
     public static void importarPlanilha(Context context) {
-        File file = new File(context.getExternalFilesDir(null), "BaseNovo.csv");
+        // Caminho do arquivo na pasta pública Downloads
+        File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "inventario.csv");
 
         if (!file.exists()) {
             Toast.makeText(context, "Planilha não encontrada.", Toast.LENGTH_SHORT).show();
@@ -23,16 +21,19 @@ public class PlanilhaHelper {
         }
 
         try {
+            // Método estático para fazer o parse manual do CSV (na MainActivity)
             List<String[]> linhas = MainActivity.parseCSVManual(file);
+
             boolean primeira = true;
             List<InventarioItem> inventarioCompleto = new ArrayList<>();
 
             for (String[] campos : linhas) {
                 if (primeira) {
-                    primeira = false;
+                    primeira = false; // pula o cabeçalho
                     continue;
                 }
                 if (campos.length >= 12) {
+                    // Cria o item do inventário a partir da linha CSV
                     InventarioItem item = InventarioItem.fromCsvLine(String.join(",", campos));
                     if (item != null) {
                         inventarioCompleto.add(item);
@@ -40,7 +41,7 @@ public class PlanilhaHelper {
                 }
             }
 
-            // Salva no Singleton
+            // Salva a lista completa no singleton para uso no app
             InventarioData.getInstance().setInventario(inventarioCompleto);
 
             Toast.makeText(context, "Planilha importada: " + inventarioCompleto.size() + " itens.", Toast.LENGTH_SHORT).show();
@@ -51,4 +52,3 @@ public class PlanilhaHelper {
         }
     }
 }
-
